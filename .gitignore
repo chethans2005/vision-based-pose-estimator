@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+env.bak/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Datasets and raw data (do NOT commit) - adjust as needed
+data/
+datasets/
+MH_01_easy/
+**/cam*/data/
+**/state_groundtruth_estimate0/
+
+# Model outputs & checkpoints
+work*/
+checkpoints*/
+*.ckpt
+*.pth
+*.pt
+*.npz
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
