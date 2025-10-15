@@ -4,6 +4,7 @@ import time
 
 import torch
 from torch.utils.data import DataLoader, random_split
+import csv
 
 try:
     # when running from project root and using package imports
@@ -193,6 +194,7 @@ def run(args):
 
     best_val = float('inf')
     os.makedirs(args.work_dir, exist_ok=True)
+    epoch_records = []
 
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
@@ -212,6 +214,20 @@ def run(args):
             best_val = val_loss
             best_path = os.path.join(args.work_dir, "best_ckpt.pt")
             torch.save({'model_state': model.state_dict(), 'epoch': epoch, 'val_loss': val_loss, 'optimizer': optim.state_dict()}, best_path)
+
+        # record epoch stats
+        epoch_records.append({'epoch': epoch, 'train_loss': float(train_loss), 'val_loss': float(val_loss)})
+
+    # Write results.csv to work_dir
+    results_csv = os.path.join(args.work_dir, 'results.csv')
+    try:
+        with open(results_csv, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['epoch', 'train_loss', 'val_loss'])
+            writer.writeheader()
+            for r in epoch_records:
+                writer.writerow(r)
+    except Exception as e:
+        print('Warning: failed to write results.csv:', e)
 
 
 def parse_args():

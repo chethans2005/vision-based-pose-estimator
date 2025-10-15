@@ -31,6 +31,7 @@ def align_by_timestamp(ts_ref, poses_ref, ts_pred, poses_pred, max_dt=50000000):
     return poses_ref[list(r_idx)], poses_pred[list(p_idx)]
 
 
+
 def compute_ate(gt, pred):
     # gt and pred are Nx7 arrays [tx,ty,tz, qw,qx,qy,qz]
     trans_gt = gt[:, :3]
@@ -38,6 +39,25 @@ def compute_ate(gt, pred):
     err = trans_gt - trans_pred
     ate = np.sqrt((err**2).sum(axis=1)).mean()
     return ate
+
+def compute_translation_rmse(gt, pred):
+    trans_gt = gt[:, :3]
+    trans_pred = pred[:, :3]
+    mse = ((trans_gt - trans_pred) ** 2).mean()
+    return np.sqrt(mse)
+
+def compute_rotation_geodesic(gt, pred):
+    # gt and pred are Nx7 arrays [tx,ty,tz, qw,qx,qy,qz]
+    q_gt = gt[:, 3:7]
+    q_pred = pred[:, 3:7]
+    # Normalize quaternions
+    q_gt = q_gt / (np.linalg.norm(q_gt, axis=1, keepdims=True) + 1e-12)
+    q_pred = q_pred / (np.linalg.norm(q_pred, axis=1, keepdims=True) + 1e-12)
+    # Geodesic distance
+    dot_products = np.abs(np.sum(q_gt * q_pred, axis=1))
+    dot_products = np.clip(dot_products, -1.0, 1.0)
+    angles = 2 * np.arccos(dot_products) * 180 / np.pi  # degrees
+    return angles.mean()
 
 
 def compute_rpe(gt, pred, delta=1):
@@ -78,6 +98,10 @@ if __name__ == '__main__':
     print('Matched samples:', len(gt_m))
     ate = compute_ate(gt_m, pred_m)
     rpe = compute_rpe(gt_m, pred_m, delta=1)
+    trans_rmse = compute_translation_rmse(gt_m, pred_m)
+    rot_geodesic = compute_rotation_geodesic(gt_m, pred_m)
     print('ATE (m):', ate)
     print('RPE (m):', rpe)
+    print('Translation RMSE (m):', trans_rmse)
+    print('Rotation Geodesic Error (deg):', rot_geodesic)
     plot_trajs(gt_m, pred_m)

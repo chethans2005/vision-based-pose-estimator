@@ -92,7 +92,14 @@ class AdvancedPoseNet(nn.Module):
         self.use_attention = use_attention
         
         if backbone == 'resnet18':
-            res = models.resnet18(pretrained=pretrained)
+            # prefer the new weights= API when available to avoid deprecation warnings
+            try:
+                from torchvision.models import ResNet18_Weights
+                weights = ResNet18_Weights.DEFAULT if pretrained else None
+                res = models.resnet18(weights=weights)
+            except Exception:
+                # fallback for older torchvision versions
+                res = models.resnet18(pretrained=pretrained)
             if in_channels != 3:
                 if pretrained and hasattr(res, 'conv1'):
                     w = res.conv1.weight.data.clone()
@@ -115,7 +122,12 @@ class AdvancedPoseNet(nn.Module):
             self.pose_head = PoseHead(feat_dim)
             
         elif backbone == 'resnet50':
-            res = models.resnet50(pretrained=pretrained)
+            try:
+                from torchvision.models import ResNet50_Weights
+                weights = ResNet50_Weights.DEFAULT if pretrained else None
+                res = models.resnet50(weights=weights)
+            except Exception:
+                res = models.resnet50(pretrained=pretrained)
             if in_channels != 3:
                 if pretrained and hasattr(res, 'conv1'):
                     w = res.conv1.weight.data.clone()
